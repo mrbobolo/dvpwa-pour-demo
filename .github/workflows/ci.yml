@@ -35,10 +35,11 @@ jobs:
         uses: checkmarx/ast-github-action@main   # voir la note sur le versionnage
         with:
           base_uri: ${{ secrets.CX_BASE_URI }}
-          cx_tenant: ${{ secrets.CX_TENANT }}
-          cx_client_id: ${{ secrets.CX_CLIENT_ID }}
-          cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
-          project_name: ${{ github.repository }}
-          additional_params: >-
-            --scan-types sast,sca,iac-security,container-security, api-security
-            --tags github-actions
+          tenant: ${{ secrets.CX_TENANT }}
+          client_id: ${{ secrets.CX_CLIENT_ID }}
+          client_secret: ${{ secrets.CX_CLIENT_SECRET }}
+          project_name: "dvpwa-pour-demo"
+          branch_name: "master"
+          scan_types: "sast,sca,iac-security,container-security, api-security"
+
+           
