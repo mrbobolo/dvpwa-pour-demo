@@ -2,9 +2,9 @@ name: CI + Checkmarx One
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 # Droits minimaux du GITHUB_TOKEN (lecture du code, écriture des commentaires de PR)
@@ -21,7 +21,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          cache: maven
+          #cache: maven
       - run: mvn -B clean verify
 
   checkmarx-scan:
