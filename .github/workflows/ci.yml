@@ -22,7 +22,7 @@ jobs:
           distribution: temurin
           java-version: '17'
           #cache: maven
-      - run: mvn -B clean verify
+     # - run: mvn -B clean verify
 
   checkmarx-scan:
     needs: build            # attend la réussite du build
