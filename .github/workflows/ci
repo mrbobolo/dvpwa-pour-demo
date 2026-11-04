@@ -1,0 +1,44 @@
+name: CI + Checkmarx One
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+# Droits minimaux du GITHUB_TOKEN (lecture du code, écriture des commentaires de PR)
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - run: mvn -B clean verify
+
+  checkmarx-scan:
+    needs: build            # attend la réussite du build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Scan Checkmarx One
+        uses: checkmarx/ast-github-action@main   # voir la note sur le versionnage
+        with:
+          base_uri: ${{ secrets.CX_BASE_URI }}
+          cx_tenant: ${{ secrets.CX_TENANT }}
+          cx_client_id: ${{ secrets.CX_CLIENT_ID }}
+          cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
+          project_name: ${{ github.repository }}
+          additional_params: >-
+            --scan-types sast,sca,iac-security,container-security, api-security
+            --tags github-actions
