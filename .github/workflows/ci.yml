@@ -15,18 +15,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Checkmarx AST CLI action
-        uses: checkmarx/ast-github-action@main
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
-          base_uri: ${{ secrets.CX_BASE_URI }}
-          cx_tenant: ${{ secrets.CX_TENANT }}
-          cx_client_id: ${{ secrets.CX_CLIENT_ID }}
-          cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
-          project_name: "dvpwa-pour-demo"
-          branch: "master"
-          source_dir: "."
-          scan_params: "--scan-types sast,sca"
+          distribution: temurin
+          java-version: '17'
 
-           
+  checkmarx-scan:
+      needs: build            # attend la réussite du build
+      runs-on: ubuntu-latest
+      steps:
+        - name: Récupérer le code
+          uses: actions/checkout@v4
+  
+        - name: Scan Checkmarx One
+          uses: checkmarx/ast-github-action@main   # voir la note sur le versionnage
+          with:
+            base_uri: ${{ secrets.CX_BASE_URI }}
+            cx_tenant: ${{ secrets.CX_TENANT }}
+            cx_client_id: ${{ secrets.CX_CLIENT_ID }}
+            cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
+            project_name: "dvpwa-pour-demo"
+            branch: "master"
+            source_dir: "."
+            scan_params: "--scan-types sast,sca"
