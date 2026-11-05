@@ -25,7 +25,7 @@ jobs:
           cx_client_id: ${{ secrets.CX_CLIENT_ID }}
           cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
           project_name: "dvpwa-pour-demo"
-          branch_name: "master"
+          branch: "master"
           scan_params: "--scan-types sast,sca,iac-security,container-security, api-security"
 
            
