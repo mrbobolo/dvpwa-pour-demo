@@ -1,3 +1,4 @@
+import html
 import logging
 from datetime import datetime
 from itertools import groupby
@@ -116,6 +117,14 @@ async def review(request: Request):
         course = await Course.get(conn, course_id)
         if not course:
             raise HTTPNotFound()
+        # Course data comes from the database and the templates are rendered
+        # with autoescape disabled, so HTML-encode it before it is returned.
+        course = Course(
+            id=course.id,
+            title=html.escape(course.title),
+            description=(html.escape(course.description)
+                         if course.description is not None else None),
+        )
         if request.method == 'POST':
             data = await request.post()
             review_text = data.get('review_text')
