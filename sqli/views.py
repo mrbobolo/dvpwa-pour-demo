@@ -103,6 +103,11 @@ async def course(request: Request):
         if not course:
             raise HTTPNotFound()
         reviews = await Review.get_for_course(conn, course_id)
+        # Review text is user-supplied, stored in the database and the
+        # templates are rendered with autoescape disabled, so HTML-encode it
+        # before it is returned to the template.
+        reviews = [r._replace(review_text=html.escape(r.review_text))
+                   for r in reviews]
         students = await Student.get_many(conn)
     return {'course': course,
             'reviews': reviews,
