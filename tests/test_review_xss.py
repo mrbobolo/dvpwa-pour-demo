@@ -1,5 +1,6 @@
 import asyncio
 import unittest
+from datetime import datetime
 from unittest import mock
 
 from aiohttp.test_utils import make_mocked_request
@@ -9,6 +10,8 @@ from jinja2.loaders import PackageLoader
 
 from sqli import views
 from sqli.dao.course import Course
+from sqli.dao.review import Review
+from sqli.dao.student import Student
 
 PAYLOAD = '<script>alert(1)</script>'
 
@@ -82,3 +85,38 @@ class ReviewStoredXssTest(unittest.TestCase):
         course = Course(1, 'Algebra 101', None)
         body = self._render(course)
         self.assertIn('Algebra 101', body)
+
+
+class CourseReviewsStoredXssTest(unittest.TestCase):
+    """Stored XSS via review text rendered on the course page."""
+
+    def _render(self, review_texts):
+        request = _make_request()
+        request.match_info['id'] = '1'
+        course = Course(1, 'Algebra 101', 'desc')
+        reviews = [
+            Review(i, datetime(2020, 1, 1, 12, 0), 1, text)
+            for i, text in enumerate(review_texts)
+        ]
+        with mock.patch.object(Course, 'get',
+                               mock.AsyncMock(return_value=course)), \
+                mock.patch.object(Review, 'get_for_course',
+                                  mock.AsyncMock(return_value=reviews)), \
+                mock.patch.object(Student, 'get_many',
+                                  mock.AsyncMock(return_value=[])):
+            response = _run(views.course(request))
+        return response.text
+
+    def test_review_text_is_html_encoded(self):
+        body = self._render([PAYLOAD])
+        self.assertNotIn(PAYLOAD, body)
+        self.assertIn('&lt;script&gt;alert(1)&lt;/script&gt;', body)
+
+    def test_review_attribute_breakout_is_encoded(self):
+        body = self._render(['"><img src=x onerror=alert(1)>'])
+        self.assertNotIn('<img src=x', body)
+        self.assertIn('&lt;img src=x onerror=alert(1)&gt;', body)
+
+    def test_plain_review_is_unchanged(self):
+        body = self._render(['Great course'])
+        self.assertIn('Great course', body)
